@@ -4,21 +4,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="assets/images/graph-up.svg" type="image/x-icon">
   <link rel="stylesheet" href="assets/css/bootstrap@5.1.3_dist_css_bootstrap.min.css">
   <link rel="stylesheet" href="assets/css/bootstrap-icons@1.11.0_font_bootstrap-icons.css">
   <script src="assets/js/bootstrap@5.3.2_dist_js_bootstrap.bundle.min.js"></script>
+  <title>Workload Statistics</title>
     <style>
       #deleteOs:hover {color: red !important;
         cursor: pointer;
       }
     </style>
-  <title>Ward-Order</title>
 </head>
 
 <body class="pt-4">
   <div  class="container border rounded col-6 my-3  p-3 " x-data="alpine()" x-init="
     inventory = await (await fetch(url + '?sheet=inventory')).json() ">
-    <h3 class="mb-4"><i class="bi bi-graph-up text-success fw-bolder"></i><span style="color:#102820;" class="ms-3"> Workload Statistics </span></h3>
+    <h4 class="mb-4"><i class="bi bi-graph-up text-success fw-bolder"></i><span style="color:#102820;" class="ms-3"> Workload Statistics and Out of Stock  </span></h4>
     <form class="needs-validation">
 
       <div class="mb-3 ">
@@ -86,10 +87,10 @@
 
 
       <div class="text-center my-3">
-        <button id="submit" @click="postData(event)" class="btn btn-primary mt-3" type="submit">
-          <span x-show="!formSubmitting">Submit</span>
+        <button id="submit" @click="postData(event)" class="btn btn-success mt-3 py-1 px-3" type="submit">
+          <span x-show="!formSubmitting"><i class="bi bi-send"></i> <span>Save</span></span>
           <span x-show="formSubmitting" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-          <span x-show="formSubmitting" class="sr-only"> submitting ...</span>
+          <span x-show="formSubmitting" class="sr-only"> saving ...</span>
         </button>
       </div>
     </form>
