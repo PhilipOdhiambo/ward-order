@@ -16,8 +16,20 @@
     </style>
 </head>
 
-<body class="pt-4">
-  <div  class="container border rounded col-6 my-3  p-3 " x-data="alpine()" x-init="refreshInventory()">
+<body class="pt-4" x-data="alpine()" x-init="refreshInventory()">
+  <div>
+    <label for="user">User Name </label>
+    <select name="user" id="user" @change="setUser($event)" x-model="localStorage.user">
+      <option selected disabled hidden value="">--Select--</option>
+      <option selected="selected" value="Philip">Philip</option>
+      <option selected="selected" value="Judy">Judy</option>
+      <option selected="selected" value="Shimejero">Shimejero</option>
+      <option selected="selected" value="Cliff">Cliff</option>
+      <option selected="selected" value="Carol">Carol</option>
+      <option selected="selected" value="Betty">Betty</option>
+    </select>
+  </div>
+  <div  class="container border rounded col-6 my-3  p-3 ">
     <h4 class="mb-4"><i class="bi bi-graph-up text-success fw-bolder"></i><span style="color:#102820;" class="ms-3"> Workload Statistics and Out of Stock  </span></h4>
     <form class="needs-validation">
 
@@ -111,9 +123,10 @@
   <script src="assets/js/alpinejs@3.13.0_dist_cdn.min.js" defer></script>
 
   <script>
+
     function alpine() {
       return {
-        url: "https://script.google.com/macros/s/AKfycbwxgfhE5yqLlAoEPwkjnWkm0HwQfvP25RCw-Tnad6_59M0Ns-nV1CuxPVpJxy8T66-f/exec",
+        url: "https://script.google.com/macros/s/AKfycbxiFuOnHxYc1-IJ2EbKgutmszSvzyFoZmYfndeVB_BdMe9AZ5tArlwH1lbYvpYybYUy/exec",
         search: '',
         OrderCartegory: '',
         formSubmitting: false,
@@ -123,10 +136,14 @@
         inventory: [],
         osList: [],
 
+        setUser(e) {
+          localStorage.user = e.target.options[e.target.selectedIndex].value;
+        },
+
         get filteredInventory() {
           return this.inventory.filter(
             item => {
-              const regex = new RegExp('^' + this.search + '| ' + this.search, 'i')
+              const regex = new RegExp('^' + this.search + '| ' + this.search + '|\\(' + this.search, 'i')
               if (regex.test(item['Code']) || regex.test(item['BrandName']) || regex.test(item.GenericDescription)) {
                 return true
               }
@@ -153,7 +170,10 @@
         postData(e) {
           e.preventDefault();
           const form = document.querySelector('form');
-          // Return if form is invalid
+          if(!localStorage.user) {
+            alert("Please select your username first.");
+            return
+          }
           if (!form.checkValidity()) {
             form.classList.add('was-validated');
             return
@@ -165,7 +185,8 @@
             OrderCartegory: this.OrderCartegory,
             NumberOfDocuments: this.NumberOfDocuments,
             ItemsOrdered: this.ItemsOrdered,
-            NumberOutOfStock: this.osList.length || 0
+            NumberOutOfStock: this.osList.length || 0,
+            ReportedBy: localStorage.user
           }
 
           const data = {
