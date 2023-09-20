@@ -17,7 +17,7 @@
 </head>
 
 <body class="pt-4" x-data="alpine()" x-init="refreshInventory()">
-  <div class="text-center bg-warning float-end" style="margin-right:150px;width: 100px;">
+  <div class="text-center bg-warning float-end" style="margin-right:90px;width: 200px;">
     <label class="form-label " for="user">User Name </label>
     <select class="form-select" name="user" id="user" @change="setUser($event)" x-model="localStorage.user">
       <option selected disabled hidden value="">--Select--</option>
