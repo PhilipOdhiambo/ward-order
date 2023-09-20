@@ -17,8 +17,7 @@
 </head>
 
 <body class="pt-4">
-  <div  class="container border rounded col-6 my-3  p-3 " x-data="alpine()" x-init="
-    inventory = await (await fetch(url + '?sheet=inventory')).json() ">
+  <div  class="container border rounded col-6 my-3  p-3 " x-data="alpine()" x-init="refreshInventory()">
     <h4 class="mb-4"><i class="bi bi-graph-up text-success fw-bolder"></i><span style="color:#102820;" class="ms-3"> Workload Statistics and Out of Stock  </span></h4>
     <form class="needs-validation">
 
@@ -60,29 +59,40 @@
         <template x-for="(item,index) of osList">
           <tr>
             <td x-text="index + 1"></td>
-            <td class="text-wrap" style="font-size:11px; width: 300px;" x-text="item.GenericDescription"></td>
-            <td x-text="item.BrandName"></td>
+            <td class="text-wrap" style="width: 300px;" x-text="item.GenericDescription"></td>
+            <td x-text="item.BrandName ==''? 'Generic' : item.BrandName"></td>
             <td><i id="deleteOs" class="bi bi-trash" @click="osList.splice(index,1)"></i></td>
           </tr>
         </template>
       </table> <!-- table of out of stock -->
 
-      <div class="dropdown">
+
+ 
+      <div class="dropdown">        
         <input x-model="search" class="dropdown-toggle form-control" style="width: 50%;" data-bs-toggle="dropdown" autocomplete="false"
-          placeholder="Add out of stock(s) ...">
+          placeholder="Add out of stock(s) ..."
+        ><!-- Dropdown filter-->
         <ul class="dropdown-menu" style="width:100%;height: 300px;overflow:auto;" aria-expanded="false">
           <template x-for="item in filteredInventory">
             <li class="dropdown-item " @click="increamentOS(item);search=''" style="cursor: pointer;">
               <a>
-                <span class="form-text  text-wrap" x-text="item.Code"></span>
-                <span>:</span>
-                <span class="form-text  text-wrap" x-text="item.GenericDescription"></span>
-                <span> : </span>
-                <span x-text="item.BrandName"></span>
+                <span class="text-wrap" x-text="item.Code + ' ' + item.GenericDescription"></span>
+                <span x-text="item.BrandName == '' ? '' : ': ' + item.BrandName"></span>
               </a>
             </li>
           </template>
-        </ul>
+          <li class="ps-2" x-show="search!='' && !filteredInventory.length">
+            <span class="fw-bold" x-text="search + ' '"></span> does not exist.
+            <a href="https://docs.google.com/spreadsheets/d/1RX0Zz_9LkdIv5R2VeRfg0NnELdcWWF3Nad9QtCH9gAc/edit#gid=0" target="_blank">
+              Click to add
+            </a>, then Refresh inventory.
+          </li>
+        </ul><!-- Dropdown Menu -->
+      </div> <!-- Dropdown -->
+
+      <div style="margin-right: 150px;">
+        <span x-show="refreshingInventory"><span class="spinner-border spinner-border-sm" ></span></span>
+        <span  x-show="!refreshingInventory"><a @click="$event.preventDefault(),refreshInventory()" href="#" >Refresh inventory</a></span>
       </div>
 
 
@@ -92,7 +102,8 @@
           <span x-show="formSubmitting" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           <span x-show="formSubmitting" class="sr-only"> saving ...</span>
         </button>
-      </div>
+        <button class="btn btn-outline-secondary mt-3 ms-3 py-1 px-3" onclick="window.location.reload()">Clear</button>
+      </div> <!-- Submit or Clear form -->
     </form>
   </div> <!-- Container-->
 
@@ -106,6 +117,7 @@
         search: '',
         OrderCartegory: '',
         formSubmitting: false,
+        refreshingInventory: true,
         NumberOfDocuments: 1,
         ItemsOrdered: '',
         inventory: [],
@@ -121,6 +133,17 @@
               return false
             }
           )
+        },
+
+        async refreshInventory () {
+          try {
+            this.refreshingInventory = true;
+            this.inventory = await (await fetch(this.url + '?sheet=inventory')).json();
+            this.refreshingInventory = false;
+            this.filteredInventory = this.inventory;            
+          } catch (error) {
+            alert('Error connecting. Please check your connection then refresh page.')
+          }
         },
 
         increamentOS(item) {
@@ -156,6 +179,7 @@
           })
             .then(res => res.text())
             .then(data => location.reload())
+            .catch(alert("The data cannot be saved now. Try again later"))
         },
 
       }
