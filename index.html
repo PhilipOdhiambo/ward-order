@@ -17,9 +17,9 @@
 </head>
 
 <body class="pt-4" x-data="alpine()" x-init="refreshInventory()">
-  <div>
-    <label for="user">User Name </label>
-    <select name="user" id="user" @change="setUser($event)" x-model="localStorage.user">
+  <div class="text-center bg-warning float-end" style="margin-right:150px;width: 100px;">
+    <label class="form-label " for="user">User Name </label>
+    <select class="form-select" name="user" id="user" @change="setUser($event)" x-model="localStorage.user">
       <option selected disabled hidden value="">--Select--</option>
       <option selected="selected" value="Philip">Philip</option>
       <option selected="selected" value="Judy">Judy</option>
@@ -126,7 +126,7 @@
 
     function alpine() {
       return {
-        url: "https://script.google.com/macros/s/AKfycbxiFuOnHxYc1-IJ2EbKgutmszSvzyFoZmYfndeVB_BdMe9AZ5tArlwH1lbYvpYybYUy/exec",
+        url: "https://script.google.com/macros/s/AKfycbx1b1p7PlsP16xtcCdHdeR1Ktib6NCjXAZ6wj6Jg19bz2cSC0T77WBcBp5SD-hG_JTe/exec",
         search: '',
         OrderCartegory: '',
         formSubmitting: false,
@@ -164,6 +164,9 @@
         },
 
         increamentOS(item) {
+          const regex = new RegExp("^S[SA-Z][A-Z0-9]+$");
+          item.IsFormulary = regex.test(item.Code)?"Yes" : "No";
+          // console.log(item.IsFormulary);
           this.osList.push(item)
         },
 
@@ -200,7 +203,7 @@
           })
             .then(res => res.text())
             .then(data => location.reload())
-            .catch(alert("The data cannot be saved now. Try again later"))
+            .catch(err =>console.log(err))
         },
 
       }
