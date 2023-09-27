@@ -158,7 +158,7 @@ setInterval(()=> {
 
     function alpine() {
       return {
-        url: "https://script.google.com/macros/s/AKfycbweGDsY6zDmepEOca4wINzV1NDb6ng52Asf6hzGDP7Y5ruFFgD-5XvgUJ4jbdXaoluE/exec",
+        url: "https://script.google.com/macros/s/AKfycbwHLul95aulaj0YUsvE-BEfDqOg6lYgbM-r1RbrUvUrwzFgw9MjvO_st4o7Ex0gb1fV/exec",
         search: '',
         now: '',
         OrderCartegory: '',
@@ -203,7 +203,7 @@ setInterval(()=> {
 
         increamentOS(item) {
           const regex = new RegExp("^S[SA-Z][A-Z0-9]+$");
-          item.IsFormulary = regex.test(item.Code)?"Yes" : "No";
+          item.IsFormulary = regex.test(item.Code)?"FORMULARLY" : "NON-FORMULARLY";
           // console.log(item.IsFormulary);
           this.osList.push(item)
         },
