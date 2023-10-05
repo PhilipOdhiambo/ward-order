@@ -270,6 +270,7 @@ setInterval(()=> {
 
           Alpine.store('pendingTally').pending.push(data)
           Alpine.store('pendingTally').postPending(workloadData);
+          this.osList = []
 
           const spanSave = e.target.querySelector('.save')
           const spanSaving = e.target.querySelector('.saving')
