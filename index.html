@@ -13,10 +13,22 @@
       #deleteOs:hover {color: red !important;
         cursor: pointer;
       }
+      #submit * {
+        pointer-events: none;
+      }
+
+      .save {
+        transition: display 0.5s;
+      }
+      .saving {
+        display: none;
+        transform: scale(1);
+        transition: all 2s;
+      }
     </style>
 </head>
 
-<body  x-data="alpine()" x-init="refreshInventory();fetchRecentPosts();
+<body  x-data="alpine()" x-init="refreshInventory();
 setInterval(()=> {
   now =  new Date();
 },1000)
@@ -24,11 +36,11 @@ setInterval(()=> {
   <div class="row">
     <div  class="container border rounded col-6 my-3  p-3 ">
       <h4 class="mb-4"><i class="bi bi-graph-up text-success fw-bolder"></i><span style="color:#102820;" class="ms-3"> Workload Statistics and Out of Stock  </span></h4>
-      <form class="needs-validation">
+      <form class="needs-validatin">
   
         <div class="mb-3 ">
           <label style="width: 150px;" class=" mx-2 form-label" for="source" class="d-inline-block me-1">Document type </label>
-          <select x-model="OrderCartegory" class="form-select d-inline-block" style="width: 150px;" name="source" required
+          <select required id="doc-type" x-model="OrderCartegory" class="form-select d-inline-block" style="width: 150px;" name="source"
             id="source">
             <option selected  class="form-text" value="">Select...</option>
             <option value="Outpatient">Prescription</option>
@@ -103,9 +115,15 @@ setInterval(()=> {
         </div> <!-- Dropdown -->  
   
         <div class="text-center my-3">
-          <button id="submit" @click="postData(event)" class="btn btn-success mt-3 py-1 px-3" type="submit">
-            <span x-show="!formSubmitting"><i class="bi bi-send"></i> <span>Save</span></span>
+          <button id="submit" @click="postData(event)" class="btn btn-success mt-3 py-1 px-3" type="submit" style="width: 90px;height: 45px;">
+            <span class="save" x-show="!formSubmitting"><i class="bi bi-send"></i> <span>Save</span></span>
             <span x-show="formSubmitting" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+
+            <svg class="saving text-primary"  width="100%" height="100%" viewBox="200 150 200 200">              
+              <g class="layer">
+               <path d="m240,234l31,-3l19,37l104,-115l17,19l-133,139l-38,-77z" fill="currentColor" id="svg_9" stroke="#000000" stroke-width="0"/>
+              </g>
+             </svg>
             <span x-show="formSubmitting" class="sr-only"> saving ...</span>
           </button>
           <button class="btn btn-outline-secondary mt-3 ms-3 py-1 px-3" onclick="window.location.reload()">Clear</button>
@@ -137,7 +155,7 @@ setInterval(()=> {
           <th>OutofStock</th>
           <th><i class="bi bi-trash"></i></th>
         </tr>
-        <template x-for="post in recentPosts">
+        <template x-for="post in $store.pendingTally.recentPosts">
           <tr>
             <td x-text="timeDifference(now,post.Date)"></td>
             <td class="text-center" x-text="post.NumberOfDocuments"></td>
@@ -153,8 +171,16 @@ setInterval(()=> {
 
 
   <script src="assets/js/alpinejs@3.13.0_dist_cdn.min.js" defer></script>
+  <script src="assets\js\custom\store.js"></script>
 
   <script>
+    const submitBtn = document.querySelector('#submit');
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('alpin', () => ({
+        url: "https://script.google.com/macros/s/AKfycbwHLul95aulaj0YUsvE-BEfDqOg6lYgbM-r1RbrUvUrwzFgw9MjvO_st4o7Ex0gb1fV/exec"
+      }))
+    });
+
 
     function alpine() {
       return {
@@ -175,7 +201,7 @@ setInterval(()=> {
         },
 
         get filteredInventory() {
-          return this.inventory.filter(
+          return Alpine.store('pendingTally').inventory.filter(
             item => {
               const regex = new RegExp('^' + this.search + '| ' + this.search + '|\\(' + this.search, 'i')
               if (regex.test(item['Code']) || regex.test(item['BrandName']) || regex.test(item.GenericDescription)) {
@@ -187,24 +213,12 @@ setInterval(()=> {
         },
 
         async refreshInventory () {
-          try {
-            this.refreshingInventory = true;
-            this.inventory = await (await fetch(this.url + '?sheet=inventory')).json();
-            this.refreshingInventory = false;
-            this.filteredInventory = this.inventory;            
-          } catch (error) {
-            alert('Error connecting. Please check your connection then refresh page.')
-          }
-        },
-
-        async fetchRecentPosts() {
-          this.recentPosts =  await (await fetch(this.url + '?recent=true')).json();
+          Alpine.store('pendingTally').getInventory();
         },
 
         increamentOS(item) {
-          const regex = new RegExp("^S[SA-Z][A-Z0-9]+$");
-          item.IsFormulary = regex.test(item.Code)?"FORMULARLY" : "NON-FORMULARLY";
-          // console.log(item.IsFormulary);
+          // const regex = new RegExp("^S[SA-Z][A-Z0-9]+$");
+          // item.IsFormulary = regex.test(item.Code)?"FORMULARLY" : "NON-FORMULARLY";
           this.osList.push(item)
         },
         
@@ -230,19 +244,17 @@ setInterval(()=> {
         },
 
         postData(e) {
-          e.preventDefault();
           const form = document.querySelector('form');
           if(!localStorage.user) {
             alert("Please select your username first.");
             return
           }
           if (!form.checkValidity()) {
-            form.classList.add('was-validated');
             return
           }
           
           // Otherwise proceed with form submit
-          this.formSubmitting = true;
+          
           const workloadData = {
             OrderCartegory: this.OrderCartegory,
             NumberOfDocuments: this.NumberOfDocuments,
@@ -256,13 +268,30 @@ setInterval(()=> {
             osList: this.osList
           }
 
-          fetch(this.url, {
-            method: "POST",
-            body: JSON.stringify(data),
-          })
-            .then(res => res.text())
-            .then(data => location.reload())
-            .catch(err =>console.log(err))
+          Alpine.store('pendingTally').pending.push(data)
+          Alpine.store('pendingTally').postPending(workloadData);
+
+          const spanSave = e.target.querySelector('.save')
+          const spanSaving = e.target.querySelector('.saving')
+
+          e.target.classList.remove('btn-success')
+          e.target.style.cursor = "none"
+          spanSave.style.display = "none"
+          spanSaving.style.display = "block"
+          setTimeout(() => {            
+            spanSaving.style.opacity = "0";
+            spanSaving.style.transform = "scale(4)"
+          }, 100);
+          spanSaving.ontransitionend = () => {
+            spanSaving.style.display = "none";
+            spanSave.style.display = "block";
+            spanSaving.style.opacity = "1";
+            spanSaving.style.transform = "scale(1)"
+            e.target.classList.add('btn-success')
+            e.target.style.cursor = "pointer"
+          }
+          e.preventDefault()
+          form.reset()
         },
 
         deletePost(post) {
