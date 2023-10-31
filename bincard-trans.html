@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="assets/images/graph-up.svg" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/bootstrap@5.1.3_dist_css_bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap-icons@1.11.0_font_bootstrap-icons.css">
+    <script src="assets/js/bootstrap@5.3.2_dist_js_bootstrap.bundle.min.js"></script>
+    <script src="assets/js/alpinejs@3.13.0_dist_cdn.min.js" defer></script>
+    <script src="assets\js\custom\store.js"></script>
+    <title>Bincard Transactions</title>
+    <style>
+        .container {
+            background-color: azure;
+        }
+
+        label {
+            display: block;
+        }
+
+        fieldset {
+            margin-bottom: 1rem;
+        }
+
+        ul {
+            height: 40vh;
+            overflow: auto;
+            min-width: 100%;
+            max-width: 100% !important;
+        }
+
+        li {
+            display: grid !important;
+            grid-template-columns: 1fr 5fr auto;
+            cursor: pointer;
+        }
+
+        .table-container {
+            overflow: auto;
+            height: 50vh;
+        }
+
+        .table-container thead th {
+            position: sticky !important;
+            top: 0;
+            background-color: aliceblue;
+
+        }
+
+        table {
+            /* border-collapse: collapse; */
+        }
+
+        td {
+            border-right: 1px solid rgb(130, 130, 188);
+            color: black;
+        }
+
+        .bi-caret-up-square-fill:hover {
+            color: green !important;
+            cursor: pointer;
+        }
+
+        .bi-trash3:hover {
+            color: red;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body x-data="alpine()">
+    <div class="container">
+        <h1 class="text-center">Bincard Transactions</h1>
+        <form class="col-8" style="margin: 0 auto;" @submit="submit($event)">
+            <div class="row">
+                <div class="col-6">
+                    <fieldset>
+                        <label for="">Date:</label>
+                        <input x-model="date" type="date" name="date" id="">
+                    </fieldset>
+                    <fieldset>
+                        <label for="">Transaction Type:</label>
+                        <select x-model="Transaction">
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="W/Stock">Issue to Working Stock</option>
+                            <option value="Issue">Issue to Other Department</option>
+                            <option value="Receipt">Receive new stock </option>
+                        </select>
+                    </fieldset>
+
+                </div>
+                <div class="col-6">
+                    <fieldset>
+                        <label for="">Supplier/Receiver:</label>
+                        <select x-model="SupplierOrReceiver">
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="Pharmacy">Intra Pharmacy</option>
+                            <option value="Drug Store">Drug Store</option>
+                            <option value="Emergency Stock">Emergency Stock </option>
+                        </select>
+                    </fieldset>
+                    <fieldset>
+                        <label for="">Ref/S11 No.</label>
+                        <input x-model="S11OrRef" type="text" placeholder="Enter S11 no. of Ref">
+                    </fieldset>
+                </div>
+            </div>
+            <!-- Search and dropdown -->
+            <div class="dropdown dropdown-striped">
+                <input x-model="search" data-bs-toggle="dropdown" class="form-control" type="search"
+                    placeholder="Search by code or name ">
+                <ul style="padding: 0;min-width: 100%;" class="dropdown-menu">
+                    <template x-for="item in filteredInventory">
+                        <li @click="addItem(item)" class="list-item dropdown-item">
+                            <span class="text-start" x-text="item.Code">sf001</span>
+                            <span x-text="item.GenericDescription">Amikacin Inj.</span>
+                            <span x-text="item.BrandName">Lanomycin</span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+            <!-- Table list -->
+            <div class="table-container">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Code <i title="Sort by Code Ascending" class="bi bi-caret-up-square-fill"
+                                    @click="sortItems('Code')"></i></th>
+                            <th>Name</th>
+                            <th>Cost</th>
+                            <th>Quantity</th>
+                            <th class="text-center">X</th>
+                        </tr>
+                    </thead>
+                    <tbody style="background-color: none;">
+                        <template x-for="(item,index) of items">
+                            <tr class="user-select-all">
+                                <td x-text="item.Code">Sf013</td>
+                                <td x-text="item.GenericDescription">Amoxicillin syrup</td>
+                                <td><input style="width: 50%;" x-model="items[index].Cost" class="" required type="text"></td>
+                                <td><input style="width: 70%;" x-model="items[index].Quantity" class="qty text-center" required type="number"></td>
+                                <td @click="removeItem(index)"> <i title="Delete line" class="bi bi-trash3"></i></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+            <div class="">
+                <input style="width: 20%;margin: 0 auto;" :disabled="!items.length"
+                    :class="{'bg-primary':items.length,'text-white':items.length}" class="form-control" type="submit">
+            </div>
+        </form>
+    </div>
+    <script>
+        function alpine() {
+            return {
+                backend: "https://script.google.com/macros/s/AKfycbyAlmOKjS0VPnhjhmPQWy-BxDybzhsw2PAxSBWDNi2DIX93GiryMNJpAhWEnO-nr0Hq/exec",
+                items: [],
+                date: '',
+                Transaction: '',
+                SupplierOrReceiver: '',
+                S11OrRef: '',
+                search: '',
+                async getInventory() {
+                    Alpine.store('pendingTally').getInventory();
+                },
+                get filteredInventory() {
+                    return Alpine.store('pendingTally').inventory.filter(
+                        item => {
+                            const regex = new RegExp('^' + this.search + '| ' + this.search + '|\\(' + this.search, 'i')
+                            if (regex.test(item['Code']) || regex.test(item['BrandName']) || regex.test(item.GenericDescription)) {
+                                return true
+                            }
+                            return false
+                        }
+                    )
+                },
+                addItem(item) {
+                    item.Quantity = ''
+                    this.items.push(item)
+                    this.search = ""
+                    setTimeout(() => {
+                        let qtyInputs = document.querySelectorAll(".qty")
+                        let lastIndex = qtyInputs.length
+                        qtyInputs[lastIndex - 1].focus()
+                    }, 0);
+                },
+                removeItem(index) {
+                    this.items.splice(index, 1)
+                },
+                sortItems(criteria) {
+                    this.items.sort((a, b) => {
+                        if (a[criteria] < b[criteria]) {
+                            return -1;
+                        }
+                        if (a[criteria] > b[criteria]) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                },
+                submit(event) {
+                    event.preventDefault()
+                    let data = this.items;
+                    data.forEach(item => {
+                        item.date = this.date
+                        item.Transaction = this.Transaction
+                        item.SupplierOrReceiver = this.SupplierOrReceiver
+                        item.S11OrRef = this.S11OrRef
+                        item.Quantity = this.Transaction === 'Receipt' ? item.Quantity : -(item.Quantity)
+                    });
+
+                    fetch(this.backend, {
+                        method: "POST", body: JSON.stringify(data),
+                    })
+                        .then(res => res.text())
+                        .then(data => {
+                            alert("Saved Successfully");
+                            location.reload()
+                        })
+                        .catch(err => alert("Saving failed. Try again"))
+
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
