@@ -9,63 +9,72 @@
   <link rel="stylesheet" href="assets/css/bootstrap-icons@1.11.0_font_bootstrap-icons.css">
   <script src="assets/js/bootstrap@5.3.2_dist_js_bootstrap.bundle.min.js"></script>
   <title>Workload Statistics</title>
-    <style>
-      #deleteOs:hover {color: red !important;
-        cursor: pointer;
-      }
-      #submit * {
-        pointer-events: none;
-      }
+  <style>
+    #deleteOs:hover {
+      color: red !important;
+      cursor: pointer;
+    }
 
-      .save {
-        transition: display 0.5s;
-      }
-      .saving {
-        display: none;
-        transform: scale(1);
-        transition: all 2s;
-      }
-    </style>
+    #submit * {
+      pointer-events: none;
+    }
+
+    .save {
+      transition: display 0.5s;
+    }
+
+    .saving {
+      display: none;
+      transform: scale(1);
+      transition: all 2s;
+    }
+
+    .dropdown-menu:nth-child(odd) {
+      background: #f5f5f5;
+    }
+
+  
+  </style>
 </head>
 
-<body  x-data="alpine()" x-init="refreshInventory();
+<body x-data="alpine()" x-init="refreshInventory();
 setInterval(()=> {
   now =  new Date();
 },1000)
 ">
   <div class="row">
-    <div  class="container border rounded col-6 my-3  p-3 ">
-      <h4 class="mb-4"><i class="bi bi-graph-up text-success fw-bolder"></i><span style="color:#102820;" class="ms-3"> Workload Statistics and Out of Stock  </span></h4>
+    <div class="container border rounded col-6 my-3  p-3 ">
+      <h4 class="mb-4"><i class="bi bi-graph-up text-success fw-bolder"></i><span style="color:#102820;" class="ms-3">
+          Workload Statistics and Out of Stock </span></h4>
       <form class="needs-validatin">
-  
+
         <div class="mb-3 ">
-          <label style="width: 150px;" class=" mx-2 form-label" for="source" class="d-inline-block me-1">Document type </label>
-          <select required id="doc-type" x-model="OrderCartegory" class="form-select d-inline-block" style="width: 150px;" name="source"
-            id="source">
-            <option selected  class="form-text" value="">Select...</option>
+          <label style="width: 150px;" class=" mx-2 form-label" for="source" class="d-inline-block me-1">Document type
+          </label>
+          <select required id="doc-type" x-model="OrderCartegory" class="form-select d-inline-block"
+            style="width: 150px;" name="source" id="source">
+            <option selected class="form-text" value="">Select...</option>
             <option value="Outpatient">Prescription</option>
             <option value="Inpatient">T.Sheet</option>
             <option value="S11">S11/IRQ</option>
           </select>
         </div> <!-- workload source-->
-  
+
         <div class="mb-3 d-inline-flex align-items-center">
           <label class=" mx-2 form-label" for="no-of-items">Number of Documents </label>
-          <input x-model="NumberOfDocuments" class="form-control" style="width: 150px;" 
-            name="number-of-docs"  type="number" value="1" id="number-of-items" onclick="this.select()" required min="1"
-          >
-          <div ><small class="invalid-feedback">This field is required</small></div>
+          <input x-model="NumberOfDocuments" class="form-control" style="width: 150px;" name="number-of-docs"
+            type="number" value="1" id="number-of-items" onclick="this.select()" required min="1">
+          <div><small class="invalid-feedback">This field is required</small></div>
         </div> <!-- Number of items listed -->
-  
+
         <div class="mb-3 d-inline-flex align-items-center">
           <label class="mx-2 form-label" for="no-of-items">Item(s) Ordered</label>
-          <input x-model="ItemsOrdered" class="form-control" required min="1" style="width: 150px;" 
-            type="number" name="number-of-items" id="number-of-items" onclick="this.select()" 
-          >
+          <input x-model="ItemsOrdered" class="form-control" required min="1" style="width: 150px;" type="number"
+            name="number-of-items" id="number-of-items" onclick="this.select()">
           <div class="invalid-feedback">This field is required</div>
         </div> <!-- Number of items listed -->
-  
-  
+
+
         <table class="table table-striped bg-light">
           <tr>
             <th>#</th>
@@ -82,58 +91,64 @@ setInterval(()=> {
             </tr>
           </template>
         </table> <!-- table of out of stock -->
-  
-  
-   
-        <div class="dropdown">        
-          <input x-model="search" class="dropdown-toggle form-control" style="width: 50%;" data-bs-toggle="dropdown" autocomplete="false"
-            placeholder="Add out of stock(s) ..."
-          ><!-- Dropdown filter-->
-          <ul class="dropdown-menu" style="width:100%;height: 300px;overflow:auto;" aria-expanded="false">
-            <div style="margin-right: 150px;">
-              <span x-show="refreshingInventory"><span class="spinner-border spinner-border-sm" ></span></span>
-              <span  x-show="!refreshingInventory"><a @click="$event.preventDefault(),$event.stopPropagation(),refreshInventory()" href="#" >Refresh inventory</a></span>
-            </div>
-            <template x-for="item in filteredInventory">
-              <li class="dropdown-item " @click="increamentOS(item);search=''" style="cursor: pointer;">
-                <a>
-                  <span class="text-wrap" x-text="item.Code + ' ' + item.GenericDescription"></span>
-                  <span x-text="item.BrandName == '' ? '' : ': ' + item.BrandName"></span>
-                </a>
-              </li>
-            </template>
-            <li class="ps-2" x-show="search!='' && !filteredInventory.length">
-              <span class="fw-bold" x-text="search + ' '"></span> does not exist.
-              <a href="https://docs.google.com/spreadsheets/d/1RX0Zz_9LkdIv5R2VeRfg0NnELdcWWF3Nad9QtCH9gAc/edit#gid=0" target="_blank">
-                Click to add
-              </a>, then Refresh inventory.
-            </li>
-            <li>
-              
-            </li>
-          </ul><!-- Dropdown Menu -->
-        </div> <!-- Dropdown -->  
-  
-        <div class="text-center my-3">
-          <button id="submit" @click="postData(event)" class="btn btn-success mt-3 py-1 px-3" type="submit" style="width: 90px;height: 45px;">
-            <span class="save" x-show="!formSubmitting"><i class="bi bi-send"></i> <span>Save</span></span>
-            <span x-show="formSubmitting" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 
-            <svg class="saving text-primary"  width="100%" height="100%" viewBox="200 150 200 200">              
+        <div class="dropdown">
+          <a href="#" class="dropdown-toggle" role="button" data-bs-toggle="dropdown">Click to add out of stock(s) if
+            any ..</a>
+          <!-- Dropdown filter-->
+          <div class="dropdown-menu" style="width: 500px;">
+            <input x-model="search" class="form-control" autocomplete="false" placeholder="Type here to search ...">
+            <ul style="height:250px;overflow-y:auto;">
+
+              <li class="dropdown-item">
+                <span x-show="refreshingInventory"><span class="spinner-border spinner-border-sm"></span></span>
+                <span x-show="!refreshingInventory"><a
+                    @click="$event.preventDefault(),$event.stopPropagation(),refreshInventory()" href="#">Refresh
+                    inventory</a></span>
+              </li>
+              <template x-for="item in filteredInventory">
+                <li class="dropdown-item " @click="increamentOS(item);search=''" style="cursor: pointer;">
+                  <a>
+                    <span class="text-wrap" x-text="item.Code + ' ' + item.GenericDescription"></span>
+                    <span x-text="item.BrandName == '' ? '' : ': ' + item.BrandName"></span>
+                  </a>
+                </li>
+              </template>
+              <li class="dropdown-item" x-show="search!='' && !filteredInventory.length">
+                <span class="fw-bold" x-text="search + ' '"></span> does not exist.
+                <a href="#">
+                  Click to add
+                </a>, then Refresh inventory.
+              </li>
+            </ul><!-- Dropdown Menu -->
+          </div>
+
+        </div> <!-- Dropdown -->
+
+        <div class="text-center my-3">
+          <button id="submit" @click="postData(event)" class="btn btn-success mt-3 py-1 px-3" type="submit"
+            style="width: 90px;height: 45px;">
+            <span class="save" x-show="!formSubmitting"><i class="bi bi-send"></i> <span>Save</span></span>
+            <span x-show="formSubmitting" class="spinner-border spinner-border-sm" role="status"
+              aria-hidden="true"></span>
+
+            <svg class="saving text-primary" width="100%" height="100%" viewBox="200 150 200 200">
               <g class="layer">
-               <path d="m240,234l31,-3l19,37l104,-115l17,19l-133,139l-38,-77z" fill="currentColor" id="svg_9" stroke="#000000" stroke-width="0"/>
+                <path d="m240,234l31,-3l19,37l104,-115l17,19l-133,139l-38,-77z" fill="currentColor" id="svg_9"
+                  stroke="#000000" stroke-width="0" />
               </g>
-             </svg>
+            </svg>
             <span x-show="formSubmitting" class="sr-only"> saving ...</span>
           </button>
-          <button class="btn btn-outline-secondary mt-3 ms-3 py-1 px-3" onclick="window.location.reload()">Clear</button>
+          <button class="btn btn-outline-secondary mt-3 ms-3 py-1 px-3"
+            onclick="window.location.reload()">Clear</button>
         </div> <!-- Submit or Clear form -->
       </form>
     </div> <!-- Container-->
     <div class="col-4">
       <div class="row mt-3">
         <div class="col-6"></div>
-        <div  class="text-center bg-warning col-4 pb-3" >
+        <div class="text-center bg-warning col-4 pb-3">
           <label class="form-label " for="user">User Name </label>
           <select class="form-select" name="user" id="user" @change="setUser($event)" x-model="localStorage.user">
             <option selected disabled hidden value="">--Select--</option>
@@ -163,7 +178,7 @@ setInterval(()=> {
             <td class="text-center" x-text="post.ItemsOrdered"></td>
             <td class="text-center" x-text="post.NumberOutOfStock"></td>
             <td class="text-center"><a class="bi bi-trash" @click="$event.preventDefault();deletePost(post)"></a></td>
-          
+
           </tr>
         </template>
       </table>
@@ -213,7 +228,7 @@ setInterval(()=> {
           )
         },
 
-        async refreshInventory () {
+        async refreshInventory() {
           Alpine.store('pendingTally').getInventory();
         },
 
@@ -222,40 +237,40 @@ setInterval(()=> {
           // item.IsFormulary = regex.test(item.Code)?"FORMULARLY" : "NON-FORMULARLY";
           this.osList.push(item)
         },
-        
-        timeDifference(current,past) {
+
+        timeDifference(current, past) {
           const currentTime = new Date(current);
           const pastTime = new Date(past);
           const diffMili = currentTime.getTime() - pastTime.getTime();
-          const diff = Math.round(diffMili/1000); // Seconds
+          const diff = Math.round(diffMili / 1000); // Seconds
           if (diff < 60) {
             return diff + ' secs';
           } else if (diff < 120) {
             return '1 minute';
-          }else if (diff >= 120 && diff <= 3600) {
-            return Math.round(diff/60) + ' mins';
-          }else if (diff >=3600 && diff <= 7200) {
-            return '1 hour'; 
-          }else if (diff < 172800) {
-            return Math.round(diff/3600) + ' hours'
+          } else if (diff >= 120 && diff <= 3600) {
+            return Math.round(diff / 60) + ' mins';
+          } else if (diff >= 3600 && diff <= 7200) {
+            return '1 hour';
+          } else if (diff < 172800) {
+            return Math.round(diff / 3600) + ' hours'
           }
           else {
-            return 'over ' +  Math.floor(diff/86400) + ' days'
+            return 'over ' + Math.floor(diff / 86400) + ' days'
           }
         },
 
         postData(e) {
           const form = document.querySelector('form');
-          if(!localStorage.user) {
+          if (!localStorage.user) {
             alert("Please select your username first.");
             return
           }
           if (!form.checkValidity()) {
             return
           }
-          
+
           // Otherwise proceed with form submit
-          
+
           const workloadData = {
             OrderCartegory: this.OrderCartegory,
             NumberOfDocuments: this.NumberOfDocuments,
@@ -280,7 +295,7 @@ setInterval(()=> {
           e.target.style.cursor = "none"
           spanSave.style.display = "none"
           spanSaving.style.display = "block"
-          setTimeout(() => {            
+          setTimeout(() => {
             spanSaving.style.opacity = "0";
             spanSaving.style.transform = "scale(4)"
           }, 100);
@@ -300,14 +315,14 @@ setInterval(()=> {
           const data = {
             deleteRow: post.Date
           }
-          
+
           fetch(this.url, {
             method: "POST",
             body: JSON.stringify(data),
           })
             .then(res => res.text())
             .then(data => location.reload())
-            .catch(err =>console.log(err))
+            .catch(err => console.log(err))
         }
 
       }
