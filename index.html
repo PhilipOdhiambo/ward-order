@@ -32,8 +32,6 @@
     .dropdown-menu:nth-child(odd) {
       background: #f5f5f5;
     }
-
-  
   </style>
 </head>
 
@@ -74,56 +72,62 @@ setInterval(()=> {
           <div class="invalid-feedback">This field is required</div>
         </div> <!-- Number of items listed -->
 
-
-        <table class="table table-striped bg-light">
-          <tr>
-            <th>#</th>
-            <th>Generic Description</th>
-            <th>BrandName</th>
-            <th>X</th>
-          </tr>
-          <template x-for="(item,index) of osList">
+        <div>
+          <a href="#collapseOs" data-bs-toggle="collapse" class=""> List out of stock(s) if any ..</a>
+        </div>
+        <div class="collapse" id="collapseOs">
+          <table class="table table-striped bg-light">
             <tr>
-              <td x-text="index + 1"></td>
-              <td class="text-wrap" style="width: 300px;" x-text="item.GenericDescription"></td>
-              <td x-text="item.BrandName ==''? 'Generic' : item.BrandName"></td>
-              <td><i id="deleteOs" class="bi bi-trash" @click="osList.splice(index,1)"></i></td>
+              <th>#</th>
+              <th>Generic Description</th>
+              <th>BrandName</th>
+              <th>X</th>
             </tr>
-          </template>
-        </table> <!-- table of out of stock -->
+            <template x-for="(item,index) of osList">
+              <tr>
+                <td x-text="index + 1"></td>
+                <td class="text-wrap" style="width: 300px;" x-text="item.GenericDescription"></td>
+                <td x-text="item.BrandName ==''? 'Generic' : item.BrandName"></td>
+                <td><i id="deleteOs" class="bi bi-trash" @click="osList.splice(index,1)"></i></td>
+              </tr>
+            </template>
+          </table> <!-- table of out of stock -->
+          <div class="dropdown">
 
-        <div class="dropdown">
-          <a href="#" class="dropdown-toggle" role="button" data-bs-toggle="dropdown">Click to add out of stock(s) if
-            any ..</a>
-          <!-- Dropdown filter-->
-          <div class="dropdown-menu" style="width: 500px;">
-            <input x-model="search" class="form-control" autocomplete="false" placeholder="Type here to search ...">
-            <ul style="height:250px;overflow-y:auto;">
+            <input x-model="search" class="form-control dropdown-toggle" autocomplete="false" data-bs-toggle="dropdown"
+              placeholder="Add item ...">
+            <!-- Dropdown filter-->
+            <div class="dropdown-menu" style="width: 500px;">
+              <ul style="height:250px;overflow-y:auto;">
 
-              <li class="dropdown-item">
-                <span x-show="refreshingInventory"><span class="spinner-border spinner-border-sm"></span></span>
-                <span x-show="!refreshingInventory"><a
-                    @click="$event.preventDefault(),$event.stopPropagation(),refreshInventory()" href="#">Refresh
-                    inventory</a></span>
-              </li>
-              <template x-for="item in filteredInventory">
-                <li class="dropdown-item " @click="increamentOS(item);search=''" style="cursor: pointer;">
-                  <a>
-                    <span class="text-wrap" x-text="item.Code + ' ' + item.GenericDescription"></span>
-                    <span x-text="item.BrandName == '' ? '' : ': ' + item.BrandName"></span>
-                  </a>
+                <li class="dropdown-item">
+                  <span x-show="refreshingInventory"><span class="spinner-border spinner-border-sm"></span></span>
+                  <span x-show="!refreshingInventory"><a
+                      @click="$event.preventDefault(),$event.stopPropagation(),refreshInventory()" href="#">Refresh
+                      inventory</a></span>
                 </li>
-              </template>
-              <li class="dropdown-item" x-show="search!='' && !filteredInventory.length">
-                <span class="fw-bold" x-text="search + ' '"></span> does not exist.
-                <a href="#">
-                  Click to add
-                </a>, then Refresh inventory.
-              </li>
-            </ul><!-- Dropdown Menu -->
-          </div>
+                <template x-for="item in filteredInventory">
+                  <li class="dropdown-item " @click="increamentOS(item);search=''" style="cursor: pointer;">
+                    <a>
+                      <span class="text-wrap" x-text="item.Code + ' ' + item.GenericDescription"></span>
+                      <span x-text="item.BrandName == '' ? '' : ': ' + item.BrandName"></span>
+                    </a>
+                  </li>
+                </template>
+                <li class="dropdown-item" x-show="search!='' && !filteredInventory.length">
+                  <span class="fw-bold" x-text="search + ' '"></span> does not exist.
+                  <a href="#">
+                    Click to add
+                  </a>, then Refresh inventory.
+                </li>
+              </ul><!-- Dropdown Menu -->
+            </div>
 
-        </div> <!-- Dropdown -->
+          </div> <!-- Dropdown -->
+
+        </div>
+
+
 
         <div class="text-center my-3">
           <button id="submit" @click="postData(event)" class="btn btn-success mt-3 py-1 px-3" type="submit"
@@ -188,6 +192,7 @@ setInterval(()=> {
 
   <script src="assets/js/alpinejs@3.13.0_dist_cdn.min.js" defer></script>
   <script src="assets\js\custom\store.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js"  crossorigin="anonymous"></script>
 
   <script>
     const submitBtn = document.querySelector('#submit');
@@ -309,6 +314,11 @@ setInterval(()=> {
           }
           e.preventDefault()
           form.reset()
+          console.log('General')
+          if ($('#collapseOs').is( ":visible" )) {
+            console.log('visible')
+            $('#collapseOs').collapse('hide');
+          }
         },
 
         deletePost(post) {
